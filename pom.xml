@@ -55,9 +55,9 @@
   </developers>
 
   <scm>
-    <connection>scm:git:git://github.com/rikturnbull/aws-parameter-store-plugin.git</connection>
-    <developerConnection>scm:git:git@github.com:rikturnbull/aws-parameter-store-plugin.git</developerConnection>
-    <url>https://github.com/rikturnbull/aws-parameter-store-plugin</url>
+    <connection>scm:git:git://github.com/jenkinsci/aws-parameter-store-plugin.git</connection>
+    <developerConnection>scm:git:git@github.com:jenkinsci/aws-parameter-store-plugin.git</developerConnection>
+    <url>https://github.com/jenkinsci/aws-parameter-store-plugin</url>
     <tag>HEAD</tag>
   </scm>
 
