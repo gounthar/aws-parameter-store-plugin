@@ -37,7 +37,7 @@
 
   <name>AWS Parameter Store Build Wrapper</name>
   <description>Adds AWS Parameter Store values to the environment</description>
-  <url>https://github.com/rikturnbull/aws-parameter-store-plugin</url>
+  <url>https://wiki.jenkins.io/display/JENKINS/AWS+Parameter+Store+Plugin</url>
 
   <licenses>
     <license>
