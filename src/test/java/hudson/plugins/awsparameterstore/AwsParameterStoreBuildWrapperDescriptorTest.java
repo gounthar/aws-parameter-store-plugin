@@ -25,12 +25,8 @@ package hudson.plugins.awsparameterstore;
 
 import com.cloudbees.jenkins.plugins.awscredentials.AWSCredentialsHelper;
 
-import java.util.Arrays;
-import java.util.Collection;
-
 import jenkins.model.Jenkins;
 
-import hudson.model.AbstractBuild;
 import hudson.util.ListBoxModel;
 
 import org.junit.After;
@@ -107,7 +103,7 @@ public class AwsParameterStoreBuildWrapperDescriptorTest {
   @Test
   public void testGetDisplayName() {
     AwsParameterStoreBuildWrapper.DescriptorImpl descriptor = new AwsParameterStoreBuildWrapper.DescriptorImpl();
-    Assert.assertEquals("displayName", "Add AWS Parameter Store values to the environment", descriptor.getDisplayName());
+    Assert.assertEquals("displayName", "With AWS Parameter Store", descriptor.getDisplayName());
   }
 
   /**

@@ -30,12 +30,12 @@ import com.cloudbees.jenkins.plugins.awscredentials.AWSCredentialsHelper;
 
 import hudson.EnvVars;
 import hudson.Extension;
+import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Util;
-import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
-import hudson.model.BuildListener;
-import hudson.tasks.BuildWrapper;
+import hudson.model.Run;
+import hudson.model.TaskListener;
 import hudson.tasks.BuildWrapperDescriptor;
 import hudson.util.ListBoxModel;
 
@@ -43,12 +43,14 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Logger;
 
 import jenkins.model.Jenkins;
+import jenkins.tasks.SimpleBuildWrapper;
 
 import org.kohsuke.stapler.DataBoundConstructor;
+
+import org.jenkinsci.Symbol;
 
 /**
  * A Jenkins {@link hudson.tasks.BuildWrapper} for AWS Parameter Store.
@@ -56,7 +58,7 @@ import org.kohsuke.stapler.DataBoundConstructor;
  * @author Rik Turnbull
  *
  */
-public class AwsParameterStoreBuildWrapper extends BuildWrapper {
+public class AwsParameterStoreBuildWrapper extends SimpleBuildWrapper {
 
   private static final Logger LOGGER = Logger.getLogger(AwsParameterStoreBuildWrapper.class.getName());
 
@@ -116,38 +118,9 @@ public class AwsParameterStoreBuildWrapper extends BuildWrapper {
    }
 
   @Override
-  public Environment setUp(AbstractBuild build, Launcher launcher, BuildListener listener) throws IOException, InterruptedException {
-    return new AwsParameterStoreEnvironment(new AwsParameterStoreService(credentialsId, regionName), path, recursive);
-  }
-
-   /**
-    * A Jenkins {@link hudson.model.Environment} implementation AWS Parameter Store.
-    *
-    * @author Rik Turnbull
-    *
-    */
-  class AwsParameterStoreEnvironment extends Environment  {
-    private AwsParameterStoreService awsParameterStoreService;
-    private String path;
-    private Boolean recursive;
-
-    /**
-     * Creates a new {@link AwsParameterStoreEnvironment}.
-     *
-     * @param awsParameterStoreService   AWS Parameter Store service
-     * @param path                       hierarchy for the parameter
-     * @param recursive                  fetch all parameters within a hierarchy
-     */
-    public AwsParameterStoreEnvironment(AwsParameterStoreService awsParameterStoreService, String path, Boolean recursive) {
-        this.awsParameterStoreService = awsParameterStoreService;
-        this.path = path;
-        this.recursive = recursive;
-    }
-
-    @Override
-    public void buildEnvVars(Map<String, String> env)  {
-      awsParameterStoreService.buildEnvVars(env, path, recursive);
-    }
+  public void setUp(Context context, Run<?, ?> run, FilePath workspace, Launcher launcher, TaskListener listener, EnvVars initialEnvironment) throws IOException, InterruptedException {
+    AwsParameterStoreService awsParameterStoreService = new AwsParameterStoreService(credentialsId, regionName);
+    awsParameterStoreService.buildEnvVars(context, path, recursive);
   }
 
   /**
@@ -156,7 +129,7 @@ public class AwsParameterStoreBuildWrapper extends BuildWrapper {
    * @author Rik Turnbull
    *
    */
-  @Extension
+  @Extension @Symbol("withAWSParameterStore")
   public static final class DescriptorImpl extends BuildWrapperDescriptor  {
     @Override
     public String getDisplayName() {

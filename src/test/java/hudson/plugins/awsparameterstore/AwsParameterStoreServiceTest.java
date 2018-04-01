@@ -39,18 +39,15 @@ import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import jenkins.model.Jenkins;
+import jenkins.tasks.SimpleBuildWrapper;
 
-import hudson.model.BuildableItem;
 import hudson.model.Hudson;
 
 import org.apache.commons.lang.StringUtils;
 import org.hamcrest.Matcher;
-import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -182,11 +179,11 @@ public class AwsParameterStoreServiceTest {
    */
   @Test
   public void testBuildEnvVars() {
-    Map<String, String> env = new HashMap<String, String>();
+    SimpleBuildWrapper.Context context = new SimpleBuildWrapper.Context();
     AwsParameterStoreService awsParameterStoreService = new AwsParameterStoreService(credentialsId, REGION_NAME);
-    awsParameterStoreService.buildEnvVars(env, path, recursive);
+    awsParameterStoreService.buildEnvVars(context, path, recursive);
     for(int i = 0; i < expected.length; i++) {
-      Assert.assertEquals(parameters[i][NAME], expected[i][VALUE], env.get(expected[i][NAME]));
+      Assert.assertEquals(parameters[i][NAME], expected[i][VALUE], context.getEnv().get(expected[i][NAME]));
     }
   }
 

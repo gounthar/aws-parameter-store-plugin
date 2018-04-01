@@ -28,6 +28,8 @@ import java.util.Collection;
 
 import hudson.model.AbstractBuild;
 
+import jenkins.tasks.SimpleBuildWrapper;
+
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -113,7 +115,7 @@ public class AwsParameterStoreBuildWrapperTest {
   public void testSetup() {
     AwsParameterStoreBuildWrapper awsParameterStoreBuildWrapper = new AwsParameterStoreBuildWrapper(credentialsId, REGION_NAME, path, recursive);
     try {
-      awsParameterStoreBuildWrapper.setUp((AbstractBuild)null, null, null);
+      awsParameterStoreBuildWrapper.setUp((SimpleBuildWrapper.Context)null, null, null, null, null, null);
     } catch(Exception e) {
       Assert.fail("Unexpected exception: " + e.getMessage());
     }

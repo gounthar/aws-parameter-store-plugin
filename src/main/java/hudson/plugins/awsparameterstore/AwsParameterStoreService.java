@@ -25,7 +25,6 @@ package hudson.plugins.awsparameterstore;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -49,6 +48,7 @@ import com.cloudbees.jenkins.plugins.awscredentials.AmazonWebServicesCredentials
 import hudson.ProxyConfiguration;
 
 import jenkins.model.Jenkins;
+import jenkins.tasks.SimpleBuildWrapper;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -133,26 +133,26 @@ public class AwsParameterStoreService {
   }
 
   /**
-   * Adds environment variables to <code>env</code>.
+   * Adds environment variables to <code>context</code>.
    *
-   * @param env           environment variable map
+   * @param context       SimpleBuildWrapper context
    * @param path          hierarchy for the parameter
    * @param recursive     fetch all parameters within a hierarchy
    */
-  public void buildEnvVars(Map<String, String> env, String path, Boolean recursive)  {
+  public void buildEnvVars(SimpleBuildWrapper.Context context, String path, Boolean recursive)  {
     if(StringUtils.isEmpty(path)) {
-      buildEnvVarsWithParameters(env);
+      buildEnvVarsWithParameters(context);
     } else {
-      buildEnvVarsWithParametersByPath(env, path, recursive);
+      buildEnvVarsWithParametersByPath(context, path, recursive);
     }
   }
 
   /**
-   * Adds environment variables to <code>env</code> using <code>describeParameters</code>.
+   * Adds environment variables to <code>context</code> using <code>describeParameters</code>.
    *
-   * @param env           environment variable map
+   * @param context       SimpleBuildWrapper context
    */
-  private void buildEnvVarsWithParameters(Map<String, String> env) {
+  private void buildEnvVarsWithParameters(SimpleBuildWrapper.Context context) {
     final AWSSimpleSystemsManagementClient client = getAWSSimpleSystemsManagementClient();
     final List<String> names = new ArrayList<String>();
 
@@ -174,7 +174,7 @@ public class AwsParameterStoreService {
     for(String name : names) {
       getParameterRequest.setName(name);
       try {
-        env.put(toEnvironmentVariable(name),
+        context.env(toEnvironmentVariable(name),
           client.getParameter(getParameterRequest).getParameter().getValue());
       } catch(Exception e) {
         LOGGER.log(Level.WARNING, "Cannot fetch parameter: \"" + name + "\"", e);
@@ -183,13 +183,13 @@ public class AwsParameterStoreService {
   }
 
   /**
-   * Adds environment variables to <code>env</code> using <code>getParametersByPath</code>.
+   * Adds environment variables to <code>context</code> using <code>getParametersByPath</code>.
    *
-   * @param env           environment variable map
+   * @param context       SimpleBuildWrapper context
    * @param path          hierarchy for the parameter
    * @param recursive     fetch all parameters within a hierarchy
    */
-  public void buildEnvVarsWithParametersByPath(Map<String, String> env, String path, Boolean recursive)  {
+  public void buildEnvVarsWithParametersByPath(SimpleBuildWrapper.Context context, String path, Boolean recursive)  {
     final AWSSimpleSystemsManagementClient client = getAWSSimpleSystemsManagementClient();
 
     try {
@@ -201,7 +201,7 @@ public class AwsParameterStoreService {
         final GetParametersByPathResult getParametersByPathResult = client.getParametersByPath(getParametersByPathRequest);
         for(Parameter parameter : getParametersByPathResult.getParameters()) {
           LOGGER.log(Level.INFO, parameter.toString());
-          env.put(toEnvironmentVariable(parameter.getName()), parameter.getValue());
+          context.env(toEnvironmentVariable(parameter.getName()), parameter.getValue());
         }
         getParametersByPathRequest.setNextToken(getParametersByPathResult.getNextToken());
       } while(getParametersByPathRequest.getNextToken() != null);
