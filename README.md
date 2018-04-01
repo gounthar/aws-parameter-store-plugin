@@ -4,9 +4,15 @@ A Jenkins plugin to populate environment variables from [AWS Parameter Store](ht
 ## Overview
 This plugin collects parameters from the AWS Parameter Store and sets them as environment variables for a build.
 
-Each AWS Parameter Store parameter name is converted to uppercase and any non-numeric characters are converted to underscores. For example, the parameter name `my-param_1` with value `my-value-1` would become the environment variable `MY_PARAM_1=my-value-1`.
+Each AWS Parameter Store parameter name is converted to uppercase and any non-numeric characters are converted to underscores. For example, the parameter name `my-param1` with value `my-value1` would become the environment variable `MY_PARAM1=my-value1`.
 
-This plugin is compatible with [AWS Parameter Store Hierarchies](https://docs.aws.amazon.com/systems-manager/latest/userguide/sysman-paramstore-working.html). A **path** and **recursive** indicator can be specified to pass to the [GetParametersByPath](https://docs.aws.amazon.com/systems-manager/latest/APIReference/API_GetParametersByPath.html) API call. The **path** is removed from the variable name. A parameter name `/service/param1` with value `value1` and a **path** of `/service/` would become `PARAM1=value1`.
+This plugin is compatible with [AWS Parameter Store Hierarchies](https://docs.aws.amazon.com/systems-manager/latest/userguide/sysman-paramstore-working.html). A **path** and **recursive** indicator can be specified to pass to the [GetParametersByPath](https://docs.aws.amazon.com/systems-manager/latest/APIReference/API_GetParametersByPath.html) API call. The **naming** parameter can be used to specify how the environment variable is derived from the **path**:
+
+  * **basename** - anything after the last '/' is the variable name (e.g. with path `/service`, parameter `/service/app/param` becomes `PARAM`)
+  * **relative** - anything after the **path** is the variable name (e.g. with path `/service`, parameter `/service/app/param` becomes `APP_PARAM`)
+  * **absolute** - the full path with parameter name is the variable name (e.g. with path `/service`, parameter `/service/app/param` becomes `SERVICE_APP_PARAM`)
+
+Parameter types are handled as follow:
 
   * **String** parameter values are unchanged
   * **SecureString** parameter values are decrypted
@@ -24,3 +30,4 @@ This has the following fields:
   * **AWS Region Name** - the region name to search for parameters (defaults to `us-east-1`)
   * **Path** - the hierarchy for the parameters
   * **Recursive** - whether to retrieve all parameters within a hierarchy
+  * **Naming** - whether the environment variable should be **basename**, **relative** or **abolute**

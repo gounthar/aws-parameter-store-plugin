@@ -98,6 +98,16 @@ public class AwsParameterStoreBuildWrapperDescriptorTest {
   }
 
   /**
+   * Test naming drop-down is populated with naming types.
+   */
+  @Test
+  public void testDoFillNamingItems() {
+    AwsParameterStoreBuildWrapper.DescriptorImpl descriptor = new AwsParameterStoreBuildWrapper.DescriptorImpl();
+    ListBoxModel namingItems  = descriptor.doFillNamingItems();
+    Assert.assertTrue("namingItems", namingItems.size() == 3);
+  }
+
+  /**
    * Test the display name is set correctly.
    */
   @Test

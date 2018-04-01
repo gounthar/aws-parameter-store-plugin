@@ -59,6 +59,10 @@ import org.apache.commons.lang.StringUtils;
  *
  */
 public class AwsParameterStoreService {
+  public static final String NAMING_BASENAME = "basename";
+  public static final String NAMING_RELATIVE = "relative";
+  public static final String NAMING_ABSOLUTE = "absolute";
+
   private static final Logger LOGGER = Logger.getLogger(AwsParameterStoreService.class.getName());
 
   private AWSSimpleSystemsManagementClient client;
@@ -138,12 +142,13 @@ public class AwsParameterStoreService {
    * @param context       SimpleBuildWrapper context
    * @param path          hierarchy for the parameter
    * @param recursive     fetch all parameters within a hierarchy
+   * @param naming        environment variable naming: basename, relative, absolute
    */
-  public void buildEnvVars(SimpleBuildWrapper.Context context, String path, Boolean recursive)  {
+  public void buildEnvVars(SimpleBuildWrapper.Context context, String path, Boolean recursive, String naming)  {
     if(StringUtils.isEmpty(path)) {
       buildEnvVarsWithParameters(context);
     } else {
-      buildEnvVarsWithParametersByPath(context, path, recursive);
+      buildEnvVarsWithParametersByPath(context, path, recursive, naming);
     }
   }
 
@@ -188,8 +193,9 @@ public class AwsParameterStoreService {
    * @param context       SimpleBuildWrapper context
    * @param path          hierarchy for the parameter
    * @param recursive     fetch all parameters within a hierarchy
+   * @param naming        environment variable naming: basename, relative, absolute
    */
-  public void buildEnvVarsWithParametersByPath(SimpleBuildWrapper.Context context, String path, Boolean recursive)  {
+  public void buildEnvVarsWithParametersByPath(SimpleBuildWrapper.Context context, String path, Boolean recursive, String naming)  {
     final AWSSimpleSystemsManagementClient client = getAWSSimpleSystemsManagementClient();
 
     try {
@@ -201,7 +207,7 @@ public class AwsParameterStoreService {
         final GetParametersByPathResult getParametersByPathResult = client.getParametersByPath(getParametersByPathRequest);
         for(Parameter parameter : getParametersByPathResult.getParameters()) {
           LOGGER.log(Level.INFO, parameter.toString());
-          context.env(toEnvironmentVariable(parameter.getName()), parameter.getValue());
+          context.env(toEnvironmentVariable(parameter.getName(), path, naming), parameter.getValue());
         }
         getParametersByPathRequest.setNextToken(getParametersByPathResult.getNextToken());
       } while(getParametersByPathRequest.getNextToken() != null);
@@ -216,8 +222,37 @@ public class AwsParameterStoreService {
    * @param name    parameter name
    */
   private String toEnvironmentVariable(String name) {
+    return toEnvironmentVariable(name, null, null);
+  }
+
+  /**
+   * Converts <code>name</code> to uppercase. All non alphanumeric characters are converted to underscores.
+   * If <code>naming</code> is <code>basename</code> then the environment variable name is anything after the
+   * last '/' in the parameter name, if it is <code>relative</code> then the environment variable name is
+   * anything after the <code>path</code>, otherwise the full path is used.
+   *
+   * @param name    parameter name
+   * @param path    hierarchy for the parameter
+   * @param naming  environment variable naming: basename, relative, absolute
+   */
+  private String toEnvironmentVariable(String name, String path, String naming) {
     StringBuffer environmentVariable = new StringBuffer();
-    for(int i = name.lastIndexOf('/')+1; i < name.length(); i++) {
+    int start = 0;
+    if(path != null) {
+      if(NAMING_RELATIVE.equals(naming)) {
+        if(name.length() > path.length()) {
+          start = path.length();
+          if(name.charAt(start) == '/') {
+            start++;
+          }
+        }
+      } else if(NAMING_ABSOLUTE.equals(naming)) {
+        start = 1;
+      } else {
+        start = name.lastIndexOf('/')+1;
+      }
+    }
+    for(int i = start; i < name.length(); i++) {
       char c = name.charAt(i);
       if(Character.isLetter(c)) {
         environmentVariable.append(Character.toUpperCase(c));

@@ -66,6 +66,7 @@ public class AwsParameterStoreBuildWrapper extends SimpleBuildWrapper {
   private final String regionName;
   private final String path;
   private final Boolean recursive;
+  private final String naming;
 
   private transient AwsParameterStoreService parameterStoreService;
 
@@ -76,13 +77,15 @@ public class AwsParameterStoreBuildWrapper extends SimpleBuildWrapper {
    * @param regionName      aws region name
    * @param path            hierarchy for the parameter
    * @param recursive       fetch all parameters within a hierarchy
+   * @param naming          environment variable naming: basename, absolute, relative
    */
   @DataBoundConstructor
-  public AwsParameterStoreBuildWrapper(String credentialsId, String regionName, String path, Boolean recursive) {
+  public AwsParameterStoreBuildWrapper(String credentialsId, String regionName, String path, Boolean recursive, String naming) {
     this.credentialsId = credentialsId;
     this.regionName = regionName;
     this.path = path;
     this.recursive = recursive;
+    this.naming = naming;
   }
 
   /**
@@ -117,10 +120,18 @@ public class AwsParameterStoreBuildWrapper extends SimpleBuildWrapper {
      return recursive;
    }
 
+  /**
+   * Gets naming: basename, absolute, relative.
+   * @return naming.
+   */
+  public String getNaming() {
+    return naming;
+  }
+
   @Override
   public void setUp(Context context, Run<?, ?> run, FilePath workspace, Launcher launcher, TaskListener listener, EnvVars initialEnvironment) throws IOException, InterruptedException {
     AwsParameterStoreService awsParameterStoreService = new AwsParameterStoreService(credentialsId, regionName);
-    awsParameterStoreService.buildEnvVars(context, path, recursive);
+    awsParameterStoreService.buildEnvVars(context, path, recursive, naming);
   }
 
   /**
@@ -160,6 +171,18 @@ public class AwsParameterStoreBuildWrapper extends SimpleBuildWrapper {
       for(String regionName : regionNames) {
         options.add(regionName);
       }
+      return options;
+    }
+
+    /**
+     * Returns a list of naming options: basename, absolute, relative.
+     * @return {@link ListBoxModel} populated with AWS region names
+     */
+    public ListBoxModel doFillNamingItems() {
+      final ListBoxModel options = new ListBoxModel();
+      options.add(AwsParameterStoreService.NAMING_BASENAME);
+      options.add(AwsParameterStoreService.NAMING_RELATIVE);
+      options.add(AwsParameterStoreService.NAMING_ABSOLUTE);
       return options;
     }
 

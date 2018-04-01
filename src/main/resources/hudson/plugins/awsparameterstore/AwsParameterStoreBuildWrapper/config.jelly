@@ -36,5 +36,8 @@
     <f:entry title="${%Recursive}" field="recursive" description="Fetch all parameters within a hierarchy">
       <f:checkbox/>
     </f:entry>
+    <f:entry title="${%Naming}" field="naming" description="Environment variable naming (basename|relative|absolute)">
+      <f:select value="${it.naming}"/>
+    </f:entry>
   </f:advanced>
 </j:jelly>

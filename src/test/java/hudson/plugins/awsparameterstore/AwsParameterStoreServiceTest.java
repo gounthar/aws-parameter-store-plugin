@@ -94,8 +94,10 @@ public class AwsParameterStoreServiceTest {
   @Parameter(2)
   public Boolean recursive;
   @Parameter(3)
-  public String[][] expected;
+  public String naming;
   @Parameter(4)
+  public String[][] expected;
+  @Parameter(5)
   public String credentialsId;
 
   @Parameters
@@ -106,6 +108,7 @@ public class AwsParameterStoreServiceTest {
           new String[][] { { "name1", "value1" }, { "name2", "value2" } },
           null,
           false,
+          "basename",
           new String[][] { { "NAME1", "value1" }, { "NAME2", "value2" } },
           CREDENTIALS_AWS_ADMIN
         },
@@ -113,20 +116,71 @@ public class AwsParameterStoreServiceTest {
           new String[][] { { "*X()_test", "value1" }, { "123abCD", "value2" }, { "name3","value3" } },
           null,
           false,
+          "basename",
           new String[][] { { "_X___TEST", "value1" }, { "123ABCD", "value2" }, { "NAME3", "value3" } },
           CREDENTIALS_AWS_ADMIN
         },
-        { /* path test */
+        { /* naming = null test */
           new String[][] { { "/service/name1", "value1" }, { "/service/name2", "value2" }, {"/ignore/name3", "value3"} },
           "/service/",
           true,
+          null,
           new String[][] { { "NAME1", "value1" }, { "NAME2", "value2" }, { "NAME3", null } },
+          CREDENTIALS_AWS_ADMIN
+        },
+        { /* naming = basename test */
+          new String[][] { { "/service/name1", "value1" }, { "/service/name2", "value2" }, {"/ignore/name3", "value3"} },
+          "/service/",
+          true,
+          "basename",
+          new String[][] { { "NAME1", "value1" }, { "NAME2", "value2" }, { "NAME3", null } },
+          CREDENTIALS_AWS_ADMIN
+        },
+        { /* naming = basename test - no trailing '/'*/
+          new String[][] { { "/service/name1", "value1" }, { "/service/name2", "value2" }, {"/ignore/name3", "value3"} },
+          "/service",
+          true,
+          "basename",
+          new String[][] { { "NAME1", "value1" }, { "NAME2", "value2" }, { "NAME3", null } },
+          CREDENTIALS_AWS_ADMIN
+        },
+        { /* naming = absolute test */
+          new String[][] { { "/service/name1", "value1" }, { "/service/name2", "value2" } },
+          "/service/",
+          true,
+          "absolute",
+          new String[][] { { "SERVICE_NAME1", "value1" }, { "SERVICE_NAME2", "value2" } },
+          CREDENTIALS_AWS_ADMIN
+        },
+        { /* naming = absolute test - no trailing '/' */
+          new String[][] { { "/service/name1", "value1" }, { "/service/name2", "value2" } },
+          "/service",
+          true,
+          "absolute",
+          new String[][] { { "SERVICE_NAME1", "value1" }, { "SERVICE_NAME2", "value2" } },
+          CREDENTIALS_AWS_ADMIN
+        },
+        { /* naming = relative test */
+          new String[][] { { "/service/app/name1", "value1" }, { "/service/name2", "value2" } },
+          "/service/",
+          true,
+          "relative",
+          new String[][] { { "APP_NAME1", "value1" }, { "NAME2", "value2" } },
+          CREDENTIALS_AWS_ADMIN
+        },
+        { /* naming = relative test - no trailing '/' */
+          new String[][] { { "/service/app/name1", "value1" }, { "/service/name2", "value2" } },
+          "/service",
+          true,
+          "relative",
+          new String[][] { { "APP_NAME1", "value1" }, { "NAME2", "value2" } },
           CREDENTIALS_AWS_ADMIN
         },
         { /* empty values */
           new String[][] { { "name1", "" }, { "name2", null }, { "name3","value3" } },
           null,
           false,
+          "basename",
           new String[][] { { "NAME1", "" }, { "NAME2", null }, { "NAME3", "value3" } },
           CREDENTIALS_AWS_ADMIN
         },
@@ -134,6 +188,7 @@ public class AwsParameterStoreServiceTest {
           new String[][] { { "name1", "value1" }, { "name2", "value2" } },
           null,
           false,
+          "basename",
           new String[][] { { "NAME1", null }, { "NAME2", null } },
           CREDENTIALS_AWS_NO_DESCRIBE
         },
@@ -141,6 +196,7 @@ public class AwsParameterStoreServiceTest {
           new String[][] { { "name1", "value1" }, { "name2", "value2" } },
           null,
           false,
+          "basename",
           new String[][] { { "NAME1", null }, { "NAME2", "value2" } },
           CREDENTIALS_AWS_NO_GET
         },
@@ -148,6 +204,7 @@ public class AwsParameterStoreServiceTest {
           new String[][] { { "name1", "value1" }, { "name2", "value2" } },
           "/service/",
           true,
+          "basename",
           new String[][] { { "NAME1", null }, { "NAME2", null } },
           CREDENTIALS_AWS_NO_GETBYPATH
         }
@@ -181,7 +238,7 @@ public class AwsParameterStoreServiceTest {
   public void testBuildEnvVars() {
     SimpleBuildWrapper.Context context = new SimpleBuildWrapper.Context();
     AwsParameterStoreService awsParameterStoreService = new AwsParameterStoreService(credentialsId, REGION_NAME);
-    awsParameterStoreService.buildEnvVars(context, path, recursive);
+    awsParameterStoreService.buildEnvVars(context, path, recursive, naming);
     for(int i = 0; i < expected.length; i++) {
       Assert.assertEquals(parameters[i][NAME], expected[i][VALUE], context.getEnv().get(expected[i][NAME]));
     }
