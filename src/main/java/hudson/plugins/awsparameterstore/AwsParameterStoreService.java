@@ -32,6 +32,7 @@ import com.amazonaws.ClientConfiguration;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.RegionUtils;
 import com.amazonaws.regions.Regions;
+import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement;
 import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagementClient;
 import com.amazonaws.services.simplesystemsmanagement.model.DescribeParametersRequest;
 import com.amazonaws.services.simplesystemsmanagement.model.DescribeParametersResult;
@@ -59,13 +60,14 @@ import org.apache.commons.lang.StringUtils;
  *
  */
 public class AwsParameterStoreService {
+  public static final String DEFAULT_REGION = "us-east-1";
   public static final String NAMING_BASENAME = "basename";
   public static final String NAMING_RELATIVE = "relative";
   public static final String NAMING_ABSOLUTE = "absolute";
 
   private static final Logger LOGGER = Logger.getLogger(AwsParameterStoreService.class.getName());
 
-  private AWSSimpleSystemsManagementClient client;
+  private AWSSimpleSystemsManagement client;
 
   private String credentialsId;
   private String regionName;
@@ -78,15 +80,15 @@ public class AwsParameterStoreService {
    */
   public AwsParameterStoreService(String credentialsId, String regionName) {
     this.credentialsId = credentialsId;
-    this.regionName = regionName;
+    this.regionName = StringUtils.defaultString(regionName, DEFAULT_REGION);
   }
 
   /**
-   * Returns an {@link AWSSimpleSystemsManagementClient}.
-   * @return {@link AWSSimpleSystemsManagementClient} singleton using the <code>credentialsId</code>
+   * Returns an {@link AWSSimpleSystemsManagement}.
+   * @return {@link AWSSimpleSystemsManagement} singleton using the <code>credentialsId</code>
    * and <code>regionName</code>
    */
-  private synchronized AWSSimpleSystemsManagementClient getAWSSimpleSystemsManagementClient() {
+  private synchronized AWSSimpleSystemsManagement getAWSSimpleSystemsManagement() {
     if(client == null) {
       ClientConfiguration clientConfiguration = new ClientConfiguration();
       Jenkins jenkins = Jenkins.getInstance();
@@ -102,27 +104,21 @@ public class AwsParameterStoreService {
 
       AmazonWebServicesCredentials credentials = getAWSCredentials(credentialsId);
       if(credentials == null) {
-        client = new AWSSimpleSystemsManagementClient(clientConfiguration);
+        client = AWSSimpleSystemsManagementClient.
+                   builder().
+                   withClientConfiguration(clientConfiguration).
+                   withRegion(regionName).
+                   build();
       } else {
-        client = new AWSSimpleSystemsManagementClient(credentials, clientConfiguration);
+        client = AWSSimpleSystemsManagementClient.
+                   builder().
+                   withCredentials(credentials).
+                   withClientConfiguration(clientConfiguration).
+                   withRegion(regionName).
+                   build();
       }
-      client.setRegion(getRegion(regionName));
     }
     return client;
-  }
-
-  /**
-   * Gets AWS region.
-   *
-   * @param regionName AWS region name
-   * @return AWS region for <code>regionName</code> or US_EAST_1
-   */
-  private Region getRegion(String regionName) {
-    Region region = RegionUtils.getRegion(regionName);
-    if(region == null) {
-      region = Region.getRegion(Regions.US_EAST_1);
-    }
-    return region;
   }
 
   /**
@@ -158,7 +154,7 @@ public class AwsParameterStoreService {
    * @param context       SimpleBuildWrapper context
    */
   private void buildEnvVarsWithParameters(SimpleBuildWrapper.Context context) {
-    final AWSSimpleSystemsManagementClient client = getAWSSimpleSystemsManagementClient();
+    final AWSSimpleSystemsManagement client = getAWSSimpleSystemsManagement();
     final List<String> names = new ArrayList<String>();
 
     try {
@@ -196,7 +192,7 @@ public class AwsParameterStoreService {
    * @param naming        environment variable naming: basename, relative, absolute
    */
   public void buildEnvVarsWithParametersByPath(SimpleBuildWrapper.Context context, String path, Boolean recursive, String naming)  {
-    final AWSSimpleSystemsManagementClient client = getAWSSimpleSystemsManagementClient();
+    final AWSSimpleSystemsManagement client = getAWSSimpleSystemsManagement();
 
     try {
       final GetParametersByPathRequest getParametersByPathRequest =

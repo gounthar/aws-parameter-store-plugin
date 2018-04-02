@@ -23,6 +23,8 @@
   */
 package hudson.plugins.awsparameterstore;
 
+import com.amazonaws.auth.AWSCredentialsProvider;
+import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement;
 import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagementClient;
 import com.amazonaws.services.simplesystemsmanagement.model.AWSSimpleSystemsManagementException;
 import com.amazonaws.services.simplesystemsmanagement.model.DescribeParametersRequest;
@@ -74,7 +76,7 @@ import org.powermock.modules.junit4.PowerMockRunnerDelegate;
  */
 @RunWith(PowerMockRunner.class)
 @PowerMockRunnerDelegate(value = Parameterized.class)
-@PrepareForTest({AwsParameterStoreService.class, Jenkins.class, AWSCredentialsHelper.class})
+@PrepareForTest(value={AwsParameterStoreService.class, Jenkins.class, AWSCredentialsHelper.class},fullyQualifiedNames={"com.amazonaws.services.simplesystemsmanagement.*"})
 public class AwsParameterStoreServiceTest {
 
   private final static int NAME = 0;
@@ -248,7 +250,6 @@ public class AwsParameterStoreServiceTest {
    * Mocks the credential helper which requires a running Jenkins instance.
    */
   private void mockAWSCredentialsHelper() {
-    AWSCredentialsHelper awsCredentialsHelper = PowerMockito.mock(AWSCredentialsHelper.class);
     PowerMockito.mockStatic(AWSCredentialsHelper.class);
     PowerMockito.when(AWSCredentialsHelper.getCredentials(Mockito.any(String.class), Mockito.any(hudson.model.ItemGroup.class))).thenReturn(null);
   }
@@ -258,6 +259,7 @@ public class AwsParameterStoreServiceTest {
    */
   private void mockAWSSimpleSystemsManagementClient() {
     AWSSimpleSystemsManagementClient awsSimpleSystemsManagementClient = PowerMockito.mock(AWSSimpleSystemsManagementClient.class);
+
     try {
       PowerMockito.whenNew(AWSSimpleSystemsManagementClient.class).withAnyArguments().thenReturn(awsSimpleSystemsManagementClient);
     } catch(Exception e) {
