@@ -30,4 +30,4 @@ This has the following fields:
   * **AWS Region Name** - the region name to search for parameters (defaults to `us-east-1`)
   * **Path** - the hierarchy for the parameters
   * **Recursive** - whether to retrieve all parameters within a hierarchy
-  * **Naming** - whether the environment variable should be **basename**, **relative** or **abolute**
+  * **Naming** - whether the environment variable should be **basename**, **relative** or **absolute**
