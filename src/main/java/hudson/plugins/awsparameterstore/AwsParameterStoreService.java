@@ -202,8 +202,11 @@ public class AwsParameterStoreService {
       do {
         final GetParametersByPathResult getParametersByPathResult = client.getParametersByPath(getParametersByPathRequest);
         for(Parameter parameter : getParametersByPathResult.getParameters()) {
-          LOGGER.log(Level.INFO, parameter.toString());
-          context.env(toEnvironmentVariable(parameter.getName(), path, naming), parameter.getValue());
+          try {
+            context.env(toEnvironmentVariable(parameter.getName(), path, naming), parameter.getValue());
+          } catch(Exception e) {
+            LOGGER.log(Level.WARNING, "Cannot add parameter to environment: " + e.getMessage(), e);
+          }
         }
         getParametersByPathRequest.setNextToken(getParametersByPathResult.getNextToken());
       } while(getParametersByPathRequest.getNextToken() != null);
@@ -238,15 +241,15 @@ public class AwsParameterStoreService {
       if(NAMING_RELATIVE.equals(naming)) {
         if(name.length() > path.length()) {
           start = path.length();
-          if(name.charAt(start) == '/') {
-            start++;
-          }
         }
       } else if(NAMING_ABSOLUTE.equals(naming)) {
         start = 1;
       } else {
         start = name.lastIndexOf('/')+1;
       }
+    }
+    if(name.charAt(start) == '/') {
+      start++;
     }
     for(int i = start; i < name.length(); i++) {
       char c = name.charAt(i);
