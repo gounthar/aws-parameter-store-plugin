@@ -167,7 +167,7 @@ public class AwsParameterStoreBuildWrapper extends SimpleBuildWrapper {
         regionNames.add(region.getName());
       }
       Collections.sort(regionNames);
-      options.add("- select -");
+      options.add("- select -", null);
       for(String regionName : regionNames) {
         options.add(regionName);
       }
