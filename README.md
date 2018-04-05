@@ -31,3 +31,11 @@ This has the following fields:
   * **Path** - the hierarchy for the parameters
   * **Recursive** - whether to retrieve all parameters within a hierarchy
   * **Naming** - whether the environment variable should be **basename**, **relative** or **absolute**
+
+## Pipelines
+
+This plugin can be included in your `Jenkinsfile`, for example:
+
+    withAWSParameterStore(credentialsId: '', naming: 'relative', path: '/service', recursive: true, regionName: 'eu-west-1') {
+      // some block
+    }
