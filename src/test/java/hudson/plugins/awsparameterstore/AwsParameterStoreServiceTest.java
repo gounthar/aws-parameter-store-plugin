@@ -98,8 +98,10 @@ public class AwsParameterStoreServiceTest {
   @Parameter(3)
   public String naming;
   @Parameter(4)
-  public String[][] expected;
+  public String namePrefixes;
   @Parameter(5)
+  public String[][] expected;
+  @Parameter(6)
   public String credentialsId;
 
   @Parameters
@@ -111,6 +113,7 @@ public class AwsParameterStoreServiceTest {
           null,
           false,
           "basename",
+          "",
           new String[][] { { "NAME1", "value1" }, { "NAME2", "value2" } },
           CREDENTIALS_AWS_ADMIN
         },
@@ -119,6 +122,7 @@ public class AwsParameterStoreServiceTest {
           null,
           false,
           "basename",
+          "",
           new String[][] { { "_X___TEST", "value1" }, { "123ABCD", "value2" }, { "NAME3", "value3" } },
           CREDENTIALS_AWS_ADMIN
         },
@@ -127,6 +131,7 @@ public class AwsParameterStoreServiceTest {
           "/service/",
           true,
           null,
+          "",
           new String[][] { { "NAME1", "value1" }, { "NAME2", "value2" }, { "NAME3", null } },
           CREDENTIALS_AWS_ADMIN
         },
@@ -135,6 +140,7 @@ public class AwsParameterStoreServiceTest {
           "/service/",
           true,
           "basename",
+          "",
           new String[][] { { "NAME1", "value1" }, { "NAME2", "value2" }, { "NAME3", null } },
           CREDENTIALS_AWS_ADMIN
         },
@@ -143,6 +149,7 @@ public class AwsParameterStoreServiceTest {
           "/service",
           true,
           "basename",
+          "",
           new String[][] { { "NAME1", "value1" }, { "NAME2", "value2" }, { "NAME3", null } },
           CREDENTIALS_AWS_ADMIN
         },
@@ -151,6 +158,7 @@ public class AwsParameterStoreServiceTest {
           "/service/",
           true,
           "absolute",
+          "",
           new String[][] { { "SERVICE_NAME1", "value1" }, { "SERVICE_NAME2", "value2" } },
           CREDENTIALS_AWS_ADMIN
         },
@@ -159,6 +167,7 @@ public class AwsParameterStoreServiceTest {
           "/service",
           true,
           "absolute",
+          "",
           new String[][] { { "SERVICE_NAME1", "value1" }, { "SERVICE_NAME2", "value2" } },
           CREDENTIALS_AWS_ADMIN
         },
@@ -167,6 +176,7 @@ public class AwsParameterStoreServiceTest {
           "/service/",
           true,
           "relative",
+          "",
           new String[][] { { "APP_NAME1", "value1" }, { "NAME2", "value2" } },
           CREDENTIALS_AWS_ADMIN
         },
@@ -175,6 +185,7 @@ public class AwsParameterStoreServiceTest {
           "/service",
           true,
           "relative",
+          "",
           new String[][] { { "APP_NAME1", "value1" }, { "NAME2", "value2" } },
           CREDENTIALS_AWS_ADMIN
         },
@@ -183,6 +194,7 @@ public class AwsParameterStoreServiceTest {
           null,
           false,
           "basename",
+          "",
           new String[][] { { "NAME1", "" }, { "NAME2", null }, { "NAME3", "value3" } },
           CREDENTIALS_AWS_ADMIN
         },
@@ -191,6 +203,7 @@ public class AwsParameterStoreServiceTest {
           null,
           false,
           "basename",
+          "",
           new String[][] { { "NAME1", null }, { "NAME2", null } },
           CREDENTIALS_AWS_NO_DESCRIBE
         },
@@ -199,6 +212,7 @@ public class AwsParameterStoreServiceTest {
           null,
           false,
           "basename",
+          "",
           new String[][] { { "NAME1", null }, { "NAME2", "value2" } },
           CREDENTIALS_AWS_NO_GET
         },
@@ -207,6 +221,7 @@ public class AwsParameterStoreServiceTest {
           "/service/",
           true,
           "basename",
+          "",
           new String[][] { { "NAME1", null }, { "NAME2", null } },
           CREDENTIALS_AWS_NO_GETBYPATH
         }
@@ -240,7 +255,7 @@ public class AwsParameterStoreServiceTest {
   public void testBuildEnvVars() {
     SimpleBuildWrapper.Context context = new SimpleBuildWrapper.Context();
     AwsParameterStoreService awsParameterStoreService = new AwsParameterStoreService(credentialsId, REGION_NAME);
-    awsParameterStoreService.buildEnvVars(context, path, recursive, naming);
+    awsParameterStoreService.buildEnvVars(context, path, recursive, naming, namePrefixes);
     for(int i = 0; i < expected.length; i++) {
       Assert.assertEquals(parameters[i][NAME], expected[i][VALUE], context.getEnv().get(expected[i][NAME]));
     }
