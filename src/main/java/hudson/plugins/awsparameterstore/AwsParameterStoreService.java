@@ -42,6 +42,7 @@ import com.amazonaws.services.simplesystemsmanagement.model.GetParametersByPathR
 import com.amazonaws.services.simplesystemsmanagement.model.GetParametersByPathResult;
 import com.amazonaws.services.simplesystemsmanagement.model.Parameter;
 import com.amazonaws.services.simplesystemsmanagement.model.ParameterMetadata;
+import com.amazonaws.services.simplesystemsmanagement.model.ParameterStringFilter;
 
 import com.cloudbees.jenkins.plugins.awscredentials.AWSCredentialsHelper;
 import com.cloudbees.jenkins.plugins.awscredentials.AmazonWebServicesCredentials;
@@ -139,10 +140,11 @@ public class AwsParameterStoreService {
    * @param path          hierarchy for the parameter
    * @param recursive     fetch all parameters within a hierarchy
    * @param naming        environment variable naming: basename, relative, absolute
+   * @param namePrefixes  filter parameters by Name with beginsWith filter
    */
-  public void buildEnvVars(SimpleBuildWrapper.Context context, String path, Boolean recursive, String naming)  {
+  public void buildEnvVars(SimpleBuildWrapper.Context context, String path, Boolean recursive, String naming, String namePrefixes)  {
     if(StringUtils.isEmpty(path)) {
-      buildEnvVarsWithParameters(context);
+      buildEnvVarsWithParameters(context, namePrefixes);
     } else {
       buildEnvVarsWithParametersByPath(context, path, recursive, naming);
     }
@@ -152,13 +154,19 @@ public class AwsParameterStoreService {
    * Adds environment variables to <code>context</code> using <code>describeParameters</code>.
    *
    * @param context       SimpleBuildWrapper context
+   * @param namePrefixes  filter parameters by Name with beginsWith filter
    */
-  private void buildEnvVarsWithParameters(SimpleBuildWrapper.Context context) {
+  private void buildEnvVarsWithParameters(SimpleBuildWrapper.Context context, String namePrefixes) {
     final AWSSimpleSystemsManagement client = getAWSSimpleSystemsManagement();
     final List<String> names = new ArrayList<String>();
 
     try {
-      final DescribeParametersRequest describeParametersRequest = new DescribeParametersRequest().withMaxResults(1);
+      DescribeParametersRequest describeParametersRequest = new DescribeParametersRequest().withMaxResults(1);
+      if (!StringUtils.isEmpty(namePrefixes)) {
+        describeParametersRequest = describeParametersRequest.withParameterFilters(
+                new ParameterStringFilter().withKey("Name").withOption("BeginsWith").withValues(namePrefixes.split(",")));
+      }
+
 
       do {
         final DescribeParametersResult describeParametersResult = client.describeParameters(describeParametersRequest);
