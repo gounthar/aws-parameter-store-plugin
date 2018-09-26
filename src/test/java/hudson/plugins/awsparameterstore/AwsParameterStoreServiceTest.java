@@ -189,6 +189,33 @@ public class AwsParameterStoreServiceTest {
           new String[][] { { "APP_NAME1", "value1" }, { "NAME2", "value2" } },
           CREDENTIALS_AWS_ADMIN
         },
+        { /* namePrefixes = single exact value */
+          new String[][] { { "prefix1_name1", "value1" }, { "prefix2_name2", "value2" } },
+          null,
+          false,
+          null,
+          "prefix1_name1",
+          new String[][] { { "PREFIX1_NAME1", "value1" } },
+          CREDENTIALS_AWS_ADMIN
+        },
+        { /* namePrefixes = single prefix value */
+          new String[][] { { "prefix1_name1", "value1" }, { "prefix2_name2", "value2" } },
+          null,
+          false,
+          null,
+          "prefix",
+          new String[][] { { "PREFIX1_NAME1", "value1" }, { "PREFIX2_NAME2", "value2" } },
+          CREDENTIALS_AWS_ADMIN
+        },
+        { /* namePrefixes = comma separated multi prefix value */
+          new String[][] { { "prefix1_name1", "value1" }, { "prefix2_name2", "value2" } },
+          null,
+          false,
+          null,
+          "prefix1,prefix2_name2",
+          new String[][] { { "PREFIX1_NAME1", "value1" }, { "PREFIX2_NAME2", "value2" } },
+          CREDENTIALS_AWS_ADMIN
+        },
         { /* empty values */
           new String[][] { { "name1", "" }, { "name2", null }, { "name3","value3" } },
           null,
@@ -332,11 +359,27 @@ public class AwsParameterStoreServiceTest {
     List<com.amazonaws.services.simplesystemsmanagement.model.Parameter> params =
                  new ArrayList<com.amazonaws.services.simplesystemsmanagement.model.Parameter>();
     for(int i = 0; i < parameters.length; i++) {
-      if(StringUtils.isEmpty(path) || parameters[i][NAME].startsWith(path)) {
-        params.add(new com.amazonaws.services.simplesystemsmanagement.model.Parameter().withName(parameters[i][NAME]).withValue(parameters[i][VALUE]));
+      String parameterName = parameters[i][NAME];
+      if(isMatchedByNamePrefixes(parameterName) || StringUtils.isEmpty(path) || parameterName.startsWith(path)) {
+        params.add(new com.amazonaws.services.simplesystemsmanagement.model.Parameter().withName(parameterName).withValue(parameters[i][VALUE]));
       }
     }
     return params;
+  }
+
+  /**
+   * Simulate match parameter name by prefixes
+   */
+  private boolean isMatchedByNamePrefixes(String parameterName) {
+    if (StringUtils.isEmpty(namePrefixes)) {
+      return false;
+    }
+    for (String namePrefix :  namePrefixes.split(",")) {
+      if (parameterName.startsWith(namePrefix)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**

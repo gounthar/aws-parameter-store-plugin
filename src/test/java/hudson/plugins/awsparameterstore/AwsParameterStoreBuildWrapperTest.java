@@ -90,6 +90,13 @@ public class AwsParameterStoreBuildWrapperTest {
           CREDENTIALS_AWS_NO_DESCRIBE,
           "relative",
           ""
+        },
+        {
+          null,
+          false,
+          CREDENTIALS_AWS_NO_DESCRIBE,
+          "",
+          "name_prefix"
         }
       }
     );
