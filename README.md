@@ -31,6 +31,7 @@ This has the following fields:
   * **Path** - the hierarchy for the parameters
   * **Recursive** - whether to retrieve all parameters within a hierarchy
   * **Naming** - whether the environment variable should be **basename**, **relative** or **absolute**
+  * **Name Prefixes** - Filter parameters by comma separated name prefixes
 
 ## Pipelines
 
