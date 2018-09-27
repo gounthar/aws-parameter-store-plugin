@@ -1,0 +1,6 @@
+How the environment variable is derived from the path:
+<ul>
+  <li><b>basename</b> - anything after the last '/' is the variable name (e.g. with path <tt>/service</tt>, parameter <tt>/service/app/param</tt> becomes <tt>PARAM</tt>)</li>
+  <li><b>relative</b> - anything after the path is the variable name (e.g. with path <tt>/service</tt>, parameter <tt>/service/app/param</tt> becomes <tt>APP_PARAM</tt>)</li>
+  <li><b>absolute</b> - the full path with parameter name is the variable name (e.g. with path <tt>/service</tt>, parameter <tt>/service/app/param</tt> becomes <tt>SERVICE_APP_PARAM</tt>)</li>
+</ul>
