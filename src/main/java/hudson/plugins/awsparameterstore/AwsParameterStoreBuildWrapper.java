@@ -79,7 +79,7 @@ public class AwsParameterStoreBuildWrapper extends SimpleBuildWrapper {
    * @param path            hierarchy for the parameter
    * @param recursive       fetch all parameters within a hierarchy
    * @param naming          environment variable naming: basename, absolute, relative
-   * @param namePrefixes  filter parameters by Name with beginsWith filter
+   * @param namePrefixes    filter parameters by Name with beginsWith filter
    */
   @DataBoundConstructor
   public AwsParameterStoreBuildWrapper(String credentialsId, String regionName, String path, Boolean recursive, String naming, String namePrefixes) {
