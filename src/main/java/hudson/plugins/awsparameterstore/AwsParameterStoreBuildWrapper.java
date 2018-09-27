@@ -67,6 +67,7 @@ public class AwsParameterStoreBuildWrapper extends SimpleBuildWrapper {
   private final String path;
   private final Boolean recursive;
   private final String naming;
+  private final String namePrefixes;
 
   private transient AwsParameterStoreService parameterStoreService;
 
@@ -78,14 +79,16 @@ public class AwsParameterStoreBuildWrapper extends SimpleBuildWrapper {
    * @param path            hierarchy for the parameter
    * @param recursive       fetch all parameters within a hierarchy
    * @param naming          environment variable naming: basename, absolute, relative
+   * @param namePrefixes  filter parameters by Name with beginsWith filter
    */
   @DataBoundConstructor
-  public AwsParameterStoreBuildWrapper(String credentialsId, String regionName, String path, Boolean recursive, String naming) {
+  public AwsParameterStoreBuildWrapper(String credentialsId, String regionName, String path, Boolean recursive, String naming, String namePrefixes) {
     this.credentialsId = credentialsId;
     this.regionName = regionName;
     this.path = path;
     this.recursive = recursive;
     this.naming = naming;
+    this.namePrefixes = namePrefixes;
   }
 
   /**
@@ -128,10 +131,18 @@ public class AwsParameterStoreBuildWrapper extends SimpleBuildWrapper {
     return naming;
   }
 
+  /**
+   * Gets namePrefixes (comma separated)
+   * @return namePrefixes.
+   */
+  public String getNamePrefixes() {
+    return namePrefixes;
+  }
+
   @Override
   public void setUp(Context context, Run<?, ?> run, FilePath workspace, Launcher launcher, TaskListener listener, EnvVars initialEnvironment) throws IOException, InterruptedException {
     AwsParameterStoreService awsParameterStoreService = new AwsParameterStoreService(credentialsId, regionName);
-    awsParameterStoreService.buildEnvVars(context, path, recursive, naming);
+    awsParameterStoreService.buildEnvVars(context, path, recursive, naming, namePrefixes);
   }
 
   /**

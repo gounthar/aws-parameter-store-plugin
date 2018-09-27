@@ -39,5 +39,8 @@
     <f:entry title="${%Naming}" field="naming" description="Environment variable naming (basename|relative|absolute)">
       <f:select value="${it.naming}"/>
     </f:entry>
+    <f:entry title="${%Name Prefixes}" field="namePrefixes" description="Comma separated name prefixes used to filter parameter by name">
+      <f:textbox value="${it.namePrefixes}"/>
+    </f:entry>
   </f:advanced>
 </j:jelly>

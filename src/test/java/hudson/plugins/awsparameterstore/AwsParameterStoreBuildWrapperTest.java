@@ -69,6 +69,9 @@ public class AwsParameterStoreBuildWrapperTest {
   public String credentialsId;
   @Parameter(3)
   public String naming;
+  @Parameter(4)
+  public String namePrefixes;
+
 
   @Parameters
   public static Collection<Object[]> data() {
@@ -78,13 +81,22 @@ public class AwsParameterStoreBuildWrapperTest {
           "/service/",
           false,
           CREDENTIALS_AWS_ADMIN,
-          "basename"
+          "basename",
+          ""
         },
         {
           null,
           true,
           CREDENTIALS_AWS_NO_DESCRIBE,
-          "relative"
+          "relative",
+          ""
+        },
+        {
+          null,
+          false,
+          CREDENTIALS_AWS_NO_DESCRIBE,
+          "",
+          "name_prefix"
         }
       }
     );
@@ -103,12 +115,13 @@ public class AwsParameterStoreBuildWrapperTest {
    */
   @Test
   public void testConstructor() {
-    AwsParameterStoreBuildWrapper awsParameterStoreBuildWrapper = new AwsParameterStoreBuildWrapper(credentialsId, REGION_NAME, path, recursive, naming);
+    AwsParameterStoreBuildWrapper awsParameterStoreBuildWrapper = new AwsParameterStoreBuildWrapper(credentialsId, REGION_NAME, path, recursive, naming, namePrefixes);
     Assert.assertEquals("credentialsId", credentialsId, awsParameterStoreBuildWrapper.getCredentialsId());
     Assert.assertEquals("regionName", REGION_NAME, awsParameterStoreBuildWrapper.getRegionName());
     Assert.assertEquals("path", path, awsParameterStoreBuildWrapper.getPath());
     Assert.assertEquals("recursive", recursive, awsParameterStoreBuildWrapper.getRecursive());
     Assert.assertEquals("naming", naming, awsParameterStoreBuildWrapper.getNaming());
+    Assert.assertEquals("namePrefixes", namePrefixes, awsParameterStoreBuildWrapper.getNamePrefixes());
   }
 
   /**
@@ -116,7 +129,7 @@ public class AwsParameterStoreBuildWrapperTest {
    */
   @Test
   public void testSetup() {
-    AwsParameterStoreBuildWrapper awsParameterStoreBuildWrapper = new AwsParameterStoreBuildWrapper(credentialsId, REGION_NAME, path, recursive, naming);
+    AwsParameterStoreBuildWrapper awsParameterStoreBuildWrapper = new AwsParameterStoreBuildWrapper(credentialsId, REGION_NAME, path, recursive, naming, namePrefixes);
     try {
       awsParameterStoreBuildWrapper.setUp((SimpleBuildWrapper.Context)null, null, null, null, null, null);
     } catch(Exception e) {
