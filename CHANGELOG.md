@@ -1,3 +1,8 @@
+## 1.2.0 (2018-09-30)
+
+  * Merged in support for name prefixes (thanks [@soloman1124](https://github.com/soloman1124/))
+  * Added help hints
+
 ## 1.1.0 (2018-04-05)
 
   * Add support for pipelines
