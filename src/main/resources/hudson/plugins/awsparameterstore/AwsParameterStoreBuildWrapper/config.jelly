@@ -31,16 +31,16 @@
   </f:entry>
   <f:advanced>
     <f:entry title="${%Path}" field="path" description="Path hierarchy for the parameter">
-      <f:textbox value="${it.path}"/>
+      <f:textbox/>
     </f:entry>
     <f:entry title="${%Recursive}" field="recursive" description="Fetch all parameters within a hierarchy">
       <f:checkbox/>
     </f:entry>
     <f:entry title="${%Naming}" field="naming" description="Environment variable naming (basename|relative|absolute)">
-      <f:select value="${it.naming}"/>
+      <f:select/>
     </f:entry>
     <f:entry title="${%Name Prefixes}" field="namePrefixes" description="Comma separated name prefixes used to filter parameter by name">
-      <f:textbox value="${it.namePrefixes}"/>
+      <f:textbox/>
     </f:entry>
   </f:advanced>
 </j:jelly>

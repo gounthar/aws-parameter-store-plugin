@@ -48,7 +48,10 @@ import java.util.logging.Logger;
 import jenkins.model.Jenkins;
 import jenkins.tasks.SimpleBuildWrapper;
 
+import org.apache.commons.lang.StringUtils;
+
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
 
 import org.jenkinsci.Symbol;
 
@@ -62,14 +65,22 @@ public class AwsParameterStoreBuildWrapper extends SimpleBuildWrapper {
 
   private static final Logger LOGGER = Logger.getLogger(AwsParameterStoreBuildWrapper.class.getName());
 
-  private final String credentialsId;
-  private final String regionName;
-  private final String path;
-  private final Boolean recursive;
-  private final String naming;
-  private final String namePrefixes;
+  private String credentialsId;
+  private String regionName;
+  private String path;
+  private Boolean recursive;
+  private String naming;
+  private String namePrefixes;
 
   private transient AwsParameterStoreService parameterStoreService;
+
+  /**
+   * Creates a new {@link AwsParameterStoreBuildWrapper}.
+   */
+  @DataBoundConstructor
+  public AwsParameterStoreBuildWrapper() {
+    this(null, null, null, false, null, null);
+  }
 
   /**
    * Creates a new {@link AwsParameterStoreBuildWrapper}.
@@ -81,7 +92,7 @@ public class AwsParameterStoreBuildWrapper extends SimpleBuildWrapper {
    * @param naming          environment variable naming: basename, absolute, relative
    * @param namePrefixes    filter parameters by Name with beginsWith filter
    */
-  @DataBoundConstructor
+  @Deprecated
   public AwsParameterStoreBuildWrapper(String credentialsId, String regionName, String path, Boolean recursive, String naming, String namePrefixes) {
     this.credentialsId = credentialsId;
     this.regionName = regionName;
@@ -100,11 +111,31 @@ public class AwsParameterStoreBuildWrapper extends SimpleBuildWrapper {
   }
 
   /**
+   * Sets the AWS credentials identifier.
+   *
+   * @param credentialsId  aws credentials id
+   */
+  @DataBoundSetter
+  public void setCredentialsId(String credentialsId) {
+    this.credentialsId = StringUtils.stripToNull(credentialsId);
+  }
+
+  /**
    * Gets AWS region name.
-   * @return AWS region name
+   * @return aws region name
    */
   public String getRegionName() {
       return regionName;
+  }
+
+  /**
+   * Sets the AWS regio name.
+   *
+   * @param regionName  aws region name
+   */
+  @DataBoundSetter
+  public void setRegionName(String regionName) {
+    this.regionName = regionName;
   }
 
   /**
@@ -116,11 +147,31 @@ public class AwsParameterStoreBuildWrapper extends SimpleBuildWrapper {
   }
 
   /**
+   * Sets the AWS Parameter Store hierarchy.
+   *
+   * @param path  aws parameter store hierarchy
+   */
+  @DataBoundSetter
+  public void setPath(String path) {
+    this.path = StringUtils.stripToNull(path);
+  }
+
+  /**
    * Gets recursive flag.
    * @return recursive
    */
   public Boolean getRecursive() {
      return recursive;
+   }
+
+   /**
+    * Sets the recursive flag.
+    *
+    * @param recursive  recursive flag
+    */
+   @DataBoundSetter
+   public void setRecursive(Boolean recursive) {
+     this.recursive = recursive;
    }
 
   /**
@@ -132,11 +183,31 @@ public class AwsParameterStoreBuildWrapper extends SimpleBuildWrapper {
   }
 
   /**
+   * Sets the naming type: basename, absolute, relative.
+   *
+   * @param naming  the naming type
+   */
+  @DataBoundSetter
+  public void setNaming(String naming) {
+    this.naming = naming;
+  }
+
+  /**
    * Gets namePrefixes (comma separated)
    * @return namePrefixes.
    */
   public String getNamePrefixes() {
     return namePrefixes;
+  }
+
+  /**
+   * Sets the name prefixes filter.
+   *
+   * @param namePrefixes  name prefixes filter
+   */
+  @DataBoundSetter
+  public void setNamePrefixes(String namePrefixes) {
+    this.namePrefixes = StringUtils.stripToNull(namePrefixes);
   }
 
   @Override
@@ -191,6 +262,7 @@ public class AwsParameterStoreBuildWrapper extends SimpleBuildWrapper {
      */
     public ListBoxModel doFillNamingItems() {
       final ListBoxModel options = new ListBoxModel();
+      options.add("- select -", null);
       options.add(AwsParameterStoreService.NAMING_BASENAME);
       options.add(AwsParameterStoreService.NAMING_RELATIVE);
       options.add(AwsParameterStoreService.NAMING_ABSOLUTE);

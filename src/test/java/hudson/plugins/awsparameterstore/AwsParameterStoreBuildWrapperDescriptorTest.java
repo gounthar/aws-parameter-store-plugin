@@ -104,7 +104,7 @@ public class AwsParameterStoreBuildWrapperDescriptorTest {
   public void testDoFillNamingItems() {
     AwsParameterStoreBuildWrapper.DescriptorImpl descriptor = new AwsParameterStoreBuildWrapper.DescriptorImpl();
     ListBoxModel namingItems  = descriptor.doFillNamingItems();
-    Assert.assertTrue("namingItems", namingItems.size() == 3);
+    Assert.assertTrue("namingItems", namingItems.size() == 4);
   }
 
   /**

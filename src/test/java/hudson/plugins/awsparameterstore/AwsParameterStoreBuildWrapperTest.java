@@ -28,6 +28,8 @@ import java.util.Collection;
 
 import jenkins.tasks.SimpleBuildWrapper;
 
+import org.apache.commons.lang.StringUtils;
+
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -122,6 +124,27 @@ public class AwsParameterStoreBuildWrapperTest {
     Assert.assertEquals("recursive", recursive, awsParameterStoreBuildWrapper.getRecursive());
     Assert.assertEquals("naming", naming, awsParameterStoreBuildWrapper.getNaming());
     Assert.assertEquals("namePrefixes", namePrefixes, awsParameterStoreBuildWrapper.getNamePrefixes());
+  }
+
+  /**
+   * Test that the getters return values set in the constructor.
+   */
+  @Test
+  public void testSetters() {
+    AwsParameterStoreBuildWrapper awsParameterStoreBuildWrapper = new AwsParameterStoreBuildWrapper();
+    awsParameterStoreBuildWrapper.setCredentialsId(credentialsId);
+    awsParameterStoreBuildWrapper.setRegionName(REGION_NAME);
+    awsParameterStoreBuildWrapper.setPath(path);
+    awsParameterStoreBuildWrapper.setRecursive(recursive);
+    awsParameterStoreBuildWrapper.setNaming(naming);
+    awsParameterStoreBuildWrapper.setNamePrefixes(namePrefixes);
+
+    Assert.assertEquals("credentialsId", credentialsId, awsParameterStoreBuildWrapper.getCredentialsId());
+    Assert.assertEquals("regionName", REGION_NAME, awsParameterStoreBuildWrapper.getRegionName());
+    Assert.assertEquals("path", path, awsParameterStoreBuildWrapper.getPath());
+    Assert.assertEquals("recursive", recursive, awsParameterStoreBuildWrapper.getRecursive());
+    Assert.assertEquals("naming", naming, awsParameterStoreBuildWrapper.getNaming());
+    Assert.assertEquals("namePrefixes", StringUtils.stripToNull(namePrefixes), awsParameterStoreBuildWrapper.getNamePrefixes());
   }
 
   /**
