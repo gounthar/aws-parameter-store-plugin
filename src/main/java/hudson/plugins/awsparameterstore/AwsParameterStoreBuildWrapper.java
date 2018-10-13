@@ -129,7 +129,7 @@ public class AwsParameterStoreBuildWrapper extends SimpleBuildWrapper {
   }
 
   /**
-   * Sets the AWS regio name.
+   * Sets the AWS region name.
    *
    * @param regionName  aws region name
    */
