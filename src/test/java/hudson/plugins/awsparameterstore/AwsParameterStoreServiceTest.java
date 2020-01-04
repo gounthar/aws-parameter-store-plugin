@@ -46,6 +46,7 @@ import java.util.List;
 import jenkins.model.Jenkins;
 import jenkins.tasks.SimpleBuildWrapper;
 
+import hudson.EnvVars;
 import hudson.model.Hudson;
 
 import org.apache.commons.lang.StringUtils;
@@ -282,7 +283,7 @@ public class AwsParameterStoreServiceTest {
   public void testBuildEnvVars() {
     SimpleBuildWrapper.Context context = new SimpleBuildWrapper.Context();
     AwsParameterStoreService awsParameterStoreService = new AwsParameterStoreService(credentialsId, REGION_NAME);
-    awsParameterStoreService.buildEnvVars(context, path, recursive, naming, namePrefixes);
+    awsParameterStoreService.buildEnvVars(context, new EnvVars(), path, recursive, naming, namePrefixes);
     for(int i = 0; i < expected.length; i++) {
       Assert.assertEquals(parameters[i][NAME], expected[i][VALUE], context.getEnv().get(expected[i][NAME]));
     }

@@ -25,10 +25,16 @@ package hudson.plugins.awsparameterstore;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.amazonaws.ClientConfiguration;
+import com.amazonaws.auth.AWSCredentials;
+import com.amazonaws.auth.AWSCredentialsProvider;
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
+import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.auth.BasicSessionCredentials;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.RegionUtils;
 import com.amazonaws.regions.Regions;
@@ -66,6 +72,10 @@ public class AwsParameterStoreService {
   public static final String NAMING_RELATIVE = "relative";
   public static final String NAMING_ABSOLUTE = "absolute";
 
+  private static final String AWS_ACCESS_KEY_ID = "AWS_ACCESS_KEY_ID";
+  private static final String AWS_SECRET_ACCESS_KEY = "AWS_SECRET_ACCESS_KEY";
+  private static final String AWS_SESSION_TOKEN = "AWS_SESSION_TOKEN";
+
   private static final Logger LOGGER = Logger.getLogger(AwsParameterStoreService.class.getName());
 
   private AWSSimpleSystemsManagement client;
@@ -86,10 +96,12 @@ public class AwsParameterStoreService {
 
   /**
    * Returns an {@link AWSSimpleSystemsManagement}.
+   * @param env execution environment variables
+   *
    * @return {@link AWSSimpleSystemsManagement} singleton using the <code>credentialsId</code>
    * and <code>regionName</code>
    */
-  private synchronized AWSSimpleSystemsManagement getAWSSimpleSystemsManagement() {
+  private synchronized AWSSimpleSystemsManagement getAWSSimpleSystemsManagement(Map<String,String> env) {
     if(client == null) {
       ClientConfiguration clientConfiguration = new ClientConfiguration();
       Jenkins jenkins = Jenkins.getInstance();
@@ -103,8 +115,10 @@ public class AwsParameterStoreService {
         }
       }
 
-      AmazonWebServicesCredentials credentials = getAWSCredentials(credentialsId);
-      if(credentials == null) {
+      // try and use either credentials provider from Jenkins or environment variables
+      // otherwise fallback to default AWS credential chain from Jenkins master
+      AWSCredentialsProvider credentialsProvider = getAWSCredentialsProvider(env, credentialsId);
+      if(credentialsProvider == null) {
         client = AWSSimpleSystemsManagementClient.
                    builder().
                    withClientConfiguration(clientConfiguration).
@@ -113,7 +127,7 @@ public class AwsParameterStoreService {
       } else {
         client = AWSSimpleSystemsManagementClient.
                    builder().
-                   withCredentials(credentials).
+                   withCredentials(credentialsProvider).
                    withClientConfiguration(clientConfiguration).
                    withRegion(regionName).
                    build();
@@ -123,30 +137,59 @@ public class AwsParameterStoreService {
   }
 
   /**
-   * Gets AWS credentials.
+   * Gets AWS credentials provider. If a Jenkins credentialsId is supplied, use
+   * inbuilt Jenkins provider, if AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY are
+   * set then use static credentials provider, otherwise return none.
    *
+   * @param env execution environment variables
    * @param credentialsId Jenkins credentials identifier
-   * @return AWS credentials for <code>credentialsId</code> that can be used
-   * for AWS calls
+   * @return AWS credentials provider for <code>credentialsId</code> or from
+   * environment
    */
-  private AmazonWebServicesCredentials getAWSCredentials(String credentialsId) {
-    return AWSCredentialsHelper.getCredentials(credentialsId, Jenkins.getActiveInstance());
+  private AWSCredentialsProvider getAWSCredentialsProvider(Map<String,String> env, String credentialsId) {
+    AWSCredentialsProvider credentialsProvider = null;
+
+    if(StringUtils.isEmpty(credentialsId)) {
+      if(env.containsKey(AWS_ACCESS_KEY_ID) && env.containsKey(AWS_SECRET_ACCESS_KEY)) {
+        if(env.containsKey(AWS_SESSION_TOKEN)) {
+          credentialsProvider = new AWSStaticCredentialsProvider(
+                                  new BasicSessionCredentials(
+                                    env.get(AWS_ACCESS_KEY_ID),
+                                    env.get(AWS_SECRET_ACCESS_KEY),
+                                    env.get(AWS_SESSION_TOKEN)
+                                  )
+                                );
+        } else {
+          credentialsProvider = new AWSStaticCredentialsProvider(
+                                  new BasicAWSCredentials(
+                                    env.get(AWS_ACCESS_KEY_ID),
+                                    env.get(AWS_SECRET_ACCESS_KEY)
+                                  )
+                                );
+        }
+      }
+    } else {
+      credentialsProvider = AWSCredentialsHelper.getCredentials(credentialsId, Jenkins.getActiveInstance());
+    }
+
+    return credentialsProvider;
   }
 
   /**
    * Adds environment variables to <code>context</code>.
    *
    * @param context       SimpleBuildWrapper context
+   * @param env           execution environment variables
    * @param path          hierarchy for the parameter
    * @param recursive     fetch all parameters within a hierarchy
    * @param naming        environment variable naming: basename, relative, absolute
    * @param namePrefixes  filter parameters by Name with beginsWith filter
    */
-  public void buildEnvVars(SimpleBuildWrapper.Context context, String path, Boolean recursive, String naming, String namePrefixes)  {
+  public void buildEnvVars(SimpleBuildWrapper.Context context, Map<String,String> env, String path, Boolean recursive, String naming, String namePrefixes)  {
     if(StringUtils.isEmpty(path)) {
-      buildEnvVarsWithParameters(context, namePrefixes);
+      buildEnvVarsWithParameters(context, env, namePrefixes);
     } else {
-      buildEnvVarsWithParametersByPath(context, path, recursive, naming);
+      buildEnvVarsWithParametersByPath(context, env, path, recursive, naming);
     }
   }
 
@@ -154,10 +197,11 @@ public class AwsParameterStoreService {
    * Adds environment variables to <code>context</code> using <code>describeParameters</code>.
    *
    * @param context       SimpleBuildWrapper context
+   * @param env           execution environment variables
    * @param namePrefixes  filter parameters by Name with beginsWith filter
    */
-  private void buildEnvVarsWithParameters(SimpleBuildWrapper.Context context, String namePrefixes) {
-    final AWSSimpleSystemsManagement client = getAWSSimpleSystemsManagement();
+  private void buildEnvVarsWithParameters(SimpleBuildWrapper.Context context, Map<String,String> env, String namePrefixes) {
+    final AWSSimpleSystemsManagement client = getAWSSimpleSystemsManagement(env);
     final List<String> names = new ArrayList<String>();
 
     try {
@@ -195,12 +239,13 @@ public class AwsParameterStoreService {
    * Adds environment variables to <code>context</code> using <code>getParametersByPath</code>.
    *
    * @param context       SimpleBuildWrapper context
+   * @param env           execution environment variables
    * @param path          hierarchy for the parameter
    * @param recursive     fetch all parameters within a hierarchy
    * @param naming        environment variable naming: basename, relative, absolute
    */
-  public void buildEnvVarsWithParametersByPath(SimpleBuildWrapper.Context context, String path, Boolean recursive, String naming)  {
-    final AWSSimpleSystemsManagement client = getAWSSimpleSystemsManagement();
+  public void buildEnvVarsWithParametersByPath(SimpleBuildWrapper.Context context, Map<String,String> env, String path, Boolean recursive, String naming)  {
+    final AWSSimpleSystemsManagement client = getAWSSimpleSystemsManagement(env);
 
     try {
       final GetParametersByPathRequest getParametersByPathRequest =
