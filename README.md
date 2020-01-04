@@ -40,3 +40,14 @@ This plugin can be included in your `Jenkinsfile`, for example:
     withAWSParameterStore(credentialsId: '', naming: 'relative', path: '/service', recursive: true, regionName: 'eu-west-1') {
       // some block
     }
+
+## Authentication
+
+The plugin is authenticated by:
+
+  * Using the specified Jenkins credentials (created at either global or folder level)
+  * For empty Jenkins credentials, using the AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY (and AWS_SESSION_TOKEN) from the **build environment**
+  * For empty Jenkins credentials and no AWS_* environment variables, using the [default credentials provider chain](https://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/auth/DefaultAWSCredentialsProviderChain.html) on the **Jenkins master**
+
+Jenkins plugins run on the master node, so it is not possible to assume the IAM role of a slave node when a job is executed.
+However, for **pipelines** it should be possible to fetch those credentials and set the appropriate environment variables.
