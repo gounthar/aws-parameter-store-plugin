@@ -1,3 +1,8 @@
+## 1.2.2 (2020-01-05)
+
+  * Use HTTPS URLs in pom (@daniel-beck)
+  * Added support for AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY (@callum-p)
+
 ## 1.2.1 (2018-11-04)
 
   * Added empty constructor to better support declaritive pipelines.
